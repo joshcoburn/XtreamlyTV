@@ -19,7 +19,7 @@ The Android TV target is intended for Google TV and Android TV devices such as s
 - Xtream provider authentication
 - Category-scoped Live TV, VOD, and Series browsing
 - Virtualized large-catalog navigation
-- Favorites and recently watched content
+- Favorite groups, media filter chips, and recently watched favorites
 - Movie and episode resume positions on webOS
 - Live HLS/MPEG-TS fallback on webOS
 - Native Media3 playback on Android TV
@@ -75,7 +75,7 @@ npm run build:webos
 Output:
 
 ```text
-dist/webos/com.github.xtreamlytv.webos_0.4.0_all.ipk
+dist/webos/com.github.xtreamlytv.webos_0.4.1_all.ipk
 ```
 
 ### Build Android TV
@@ -108,6 +108,7 @@ apps/android-tv/app/build/outputs/apk/debug/app-debug.apk
 - [Release process](docs/releasing.md)
 - [Roadmap](docs/roadmap.md)
 - [Brand assets](docs/brand.md)
+- [0.4.1 release notes](docs/release-notes/0.4.1.md)
 - [0.4.0 release notes](docs/release-notes/0.4.0.md)
 - [Publish the initial GitHub repository](docs/github-publishing.md)
 - [Contributing](CONTRIBUTING.md)
@@ -121,6 +122,10 @@ apps/android-tv/app/build/outputs/apk/debug/app-debug.apk
 ![Virtualized Live TV browser](docs/screenshots/xtreamlytv-live-virtualized.png)
 
 ![Movies library](docs/screenshots/xtreamlytv-movies.png)
+
+![Favorites groups landing page](docs/screenshots/xtreamlytv-favorites.png)
+
+![Favorites group browser](docs/screenshots/xtreamlytv-favorite-group.png)
 
 ## Development principles
 

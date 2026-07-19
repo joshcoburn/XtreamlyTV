@@ -1,6 +1,6 @@
 {
   "name": "@xtreamlytv/core-web",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "Browser/webOS shared Xtream normalization, URL and persistence primitives."
 }

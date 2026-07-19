@@ -15,6 +15,7 @@
       maxCachedCategories: 3
     },
     favorites: [],
+    favoriteGroups: [],
     recent: [],
     progress: {}
   };
@@ -33,6 +34,42 @@
     });
   }
 
+  function favoriteKey(type, id) {
+    return String(type || 'live') + ':' + String(id || '');
+  }
+
+  function normalizeFavoriteGroup(group) {
+    group = group && typeof group === 'object' ? group : {};
+    var allowedIcons = ['heart', 'tv', 'popcorn', 'play', 'smile', 'trophy', 'folder', 'star'];
+    var allowedColors = ['purple', 'blue', 'teal', 'orange', 'rose', 'lime', 'slate'];
+    var icon = allowedIcons.indexOf(group.icon) >= 0 ? group.icon : 'folder';
+    var color = allowedColors.indexOf(group.color) >= 0 ? group.color : 'purple';
+    var seen = {};
+    var itemKeys = (Array.isArray(group.itemKeys) ? group.itemKeys : []).map(String).filter(function (key) {
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return /^(live|movie|series):.+/.test(key);
+    });
+    return {
+      id: String(group.id || ''),
+      name: String(group.name || 'Untitled group').trim().slice(0, 36) || 'Untitled group',
+      icon: icon,
+      color: color,
+      itemKeys: itemKeys.slice(0, 250),
+      created_at: Number(group.created_at || Date.now()),
+      updated_at: Number(group.updated_at || Date.now())
+    };
+  }
+
+  function migrateFavoriteGroups(groups) {
+    var seen = {};
+    return (Array.isArray(groups) ? groups : []).map(normalizeFavoriteGroup).filter(function (group) {
+      if (!group.id || seen[group.id]) return false;
+      seen[group.id] = true;
+      return true;
+    }).slice(0, 24);
+  }
+
   function load() {
     try {
       var raw = localStorage.getItem(KEY);
@@ -42,6 +79,7 @@
         credentials: parsed.credentials || null,
         settings: Object.assign({}, defaults.settings, parsed.settings || {}),
         favorites: migrateItems(parsed.favorites),
+        favoriteGroups: migrateFavoriteGroups(parsed.favoriteGroups),
         recent: migrateItems(parsed.recent),
         progress: parsed.progress && typeof parsed.progress === 'object' ? parsed.progress : {}
       };
@@ -68,11 +106,40 @@
       var index = state.favorites.findIndex(function (favorite) {
         return Core.inferType(favorite) === type && Core.itemId(favorite, type) === id;
       });
-      if (index >= 0) state.favorites.splice(index, 1);
-      else state.favorites.unshift(normalizedItem(item, type));
+      if (index >= 0) {
+        state.favorites.splice(index, 1);
+        var removedKey = favoriteKey(type, id);
+        state.favoriteGroups.forEach(function (group) {
+          group.itemKeys = group.itemKeys.filter(function (key) { return key !== removedKey; });
+          group.updated_at = Date.now();
+        });
+      } else state.favorites.unshift(normalizedItem(item, type));
       state.favorites = state.favorites.slice(0, 250);
       this.persist();
       return index < 0;
+    },
+    favoriteKey: favoriteKey,
+    saveFavoriteGroup: function (group) {
+      var value = normalizeFavoriteGroup(group);
+      if (!value.id) value.id = 'group-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+      value.updated_at = Date.now();
+      var index = state.favoriteGroups.findIndex(function (entry) { return entry.id === value.id; });
+      if (index >= 0) {
+        value.created_at = state.favoriteGroups[index].created_at || value.created_at;
+        state.favoriteGroups.splice(index, 1, value);
+      } else {
+        value.created_at = Date.now();
+        state.favoriteGroups.unshift(value);
+        state.favoriteGroups = state.favoriteGroups.slice(0, 24);
+      }
+      this.persist();
+      return clone(value);
+    },
+    deleteFavoriteGroup: function (id) {
+      var before = state.favoriteGroups.length;
+      state.favoriteGroups = state.favoriteGroups.filter(function (group) { return group.id !== String(id); });
+      if (state.favoriteGroups.length !== before) this.persist();
+      return state.favoriteGroups.length !== before;
     },
     addRecent: function (item, type) {
       type = type || Core.inferType(item);

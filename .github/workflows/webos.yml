@@ -39,7 +39,7 @@ jobs:
         run: npm install -g @webos-tools/cli
       - name: Package webOS app
         run: npm run build:webos
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: xtreamlytv-webos
           path: dist/webos/*.ipk

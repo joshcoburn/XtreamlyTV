@@ -37,7 +37,7 @@ jobs:
         run: |
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'platform-tools'
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
       - name: Build Kotlin
@@ -46,6 +46,6 @@ jobs:
           node scripts/generate-tokens.mjs
           cd apps/android-tv
           ./gradlew :app:assembleDebug
-      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/autobuild@v4
         if: matrix.language == 'javascript-typescript'
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4

@@ -33,7 +33,7 @@ jobs:
       - name: Test and build Android TV
         working-directory: apps/android-tv
         run: ./gradlew :app:testDebugUnitTest :app:assembleDebug
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: xtreamlytv-android-tv-debug
           path: apps/android-tv/app/build/outputs/apk/debug/app-debug.apk

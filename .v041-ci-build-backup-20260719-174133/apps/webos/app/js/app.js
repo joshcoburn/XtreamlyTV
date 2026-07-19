@@ -1346,9 +1346,7 @@
         onActivate:function (item) { self.openContent(item, typeOf(item), items); }
       });
       this.virtualGrid.setItems(items);
-      setTimeout(function () {
-        if (self.virtualGrid) self.virtualGrid.focusIndex(0);
-      }, 0);
+      setTimeout(function () { self.virtualGrid.focusIndex(0); }, 0);
     },
 
     beginFavoriteEditor: function (groupId) {

@@ -7,53 +7,33 @@ on:
       - 'packages/design-tokens/**'
       - 'packages/contracts/**'
       - 'scripts/**'
-      - 'package.json'
       - '.github/workflows/android-tv.yml'
   pull_request:
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          validate-wrappers: true
       - uses: android-actions/setup-android@v4
       - name: Install Android SDK components
         run: |
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'platform-tools'
-      - name: Verify pinned Android toolchain
-        run: node scripts/check-android-toolchain.mjs
       - name: Generate shared design tokens
         run: node scripts/generate-tokens.mjs
       - name: Test and build Android TV
         working-directory: apps/android-tv
-        shell: bash
-        run: |
-          set -o pipefail
-          mkdir -p ../../dist/ci
-          ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug 2>&1 | tee ../../dist/ci/android-build.log
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: xtreamlytv-android-tv-build-log
-          path: dist/ci/android-build.log
-          if-no-files-found: ignore
-      - uses: actions/upload-artifact@v4
-        if: success()
+        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug
+      - uses: actions/upload-artifact@v7
         with:
           name: xtreamlytv-android-tv-debug
           path: apps/android-tv/app/build/outputs/apk/debug/app-debug.apk

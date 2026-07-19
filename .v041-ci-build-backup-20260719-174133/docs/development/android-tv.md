@@ -10,10 +10,9 @@ The current Android target is a developer preview. Live TV, category browsing, V
 
 ## Requirements
 
+- Android Studio with Android SDK Platform 36
 - JDK 17
-- Android SDK Platform 36 and Build Tools 36.0.0
 - Android SDK Platform Tools (`adb`)
-- Android Studio is optional; command-line builds use the committed Gradle wrapper.
 - A TV/emulator running Android 6.0 / API 23 or later
 
 Open `apps/android-tv` as an Android Studio project, or build from the command line.
@@ -34,15 +33,7 @@ cd apps\android-tv
 .\gradlew.bat :app:assembleDebug
 ```
 
-The committed wrapper downloads Gradle 8.14.3 on first use. The v0.4.1 Android toolchain is intentionally frozen to:
-
-- Android Gradle Plugin 8.10.1
-- Kotlin and Compose compiler plugin 2.2.21
-- Gradle 8.14.3
-- JDK 17
-- compileSdk and targetSdk 36
-
-Run `node scripts/check-android-toolchain.mjs` from the repository root before changing those versions. Upgrade the set as one tested unit rather than updating individual versions.
+The repository's bootstrap scripts download Gradle 8.13 on first use. Android Studio can also sync and build the project directly.
 
 Output:
 

@@ -13,16 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          validate-wrappers: true
       - uses: android-actions/setup-android@v4
       - name: Install tools
         run: |
@@ -33,7 +30,6 @@ jobs:
         run: |
           npm run prepare:apps
           npm run check:versions
-          npm run check:android-toolchain
           npm run check:webos
           npm run check:bridge
           npm run test:core
@@ -41,11 +37,7 @@ jobs:
         run: npm run build:webos
       - name: Build Android TV debug artifact
         working-directory: apps/android-tv
-        shell: bash
-        run: |
-          set -o pipefail
-          mkdir -p ../../dist/ci
-          ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug 2>&1 | tee ../../dist/ci/android-release-build.log
+        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug
       - name: Checksums
         run: |
           mkdir -p dist/release
@@ -53,12 +45,6 @@ jobs:
           cp apps/android-tv/app/build/outputs/apk/debug/app-debug.apk dist/release/XtreamlyTV-AndroidTV-debug.apk
           cd dist/release
           sha256sum * > SHA256SUMS.txt
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: xtreamlytv-release-build-log
-          path: dist/ci/android-release-build.log
-          if-no-files-found: ignore
       - uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true

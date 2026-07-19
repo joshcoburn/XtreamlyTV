@@ -1,0 +1,9 @@
+services:
+  xtreamlytv-api-bridge:
+    build: .
+    container_name: xtreamlytv-api-bridge
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      PORT: "8787"

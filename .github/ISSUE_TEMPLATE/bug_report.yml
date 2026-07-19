@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a reproducible XtreamlyTV defect
+title: "[Bug]: "
+labels: [bug, needs-triage]
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [LG webOS, Android TV / Google TV, Browser demo, API bridge]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: XtreamlyTV version
+      placeholder: 0.4.0
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: TV/device model and OS version
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Do not include passwords or authenticated stream URLs.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Redacted logs or screenshots
+      description: Remove credentials, tokens, and complete stream URLs.

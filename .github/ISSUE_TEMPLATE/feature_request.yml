@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest a platform or product improvement
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [All platforms, LG webOS, Android TV / Google TV, API bridge, Documentation]
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true

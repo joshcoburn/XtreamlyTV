@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.XtreamlyTV" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:colorAccent">#20E7C4</item>
+        <item name="android:navigationBarColor">#071014</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

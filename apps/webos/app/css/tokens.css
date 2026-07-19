@@ -1,0 +1,15 @@
+/* Generated from packages/design-tokens/tokens.json. */
+:root {
+  --brand-accent: #20e7c4;
+  --brand-accent-secondary: #2aa7ff;
+  --brand-background: #071014;
+  --brand-surface: #0d2230;
+  --brand-text: #f4f8ff;
+  --brand-muted: #a9bcc8;
+  --brand-danger: #ff5a7d;
+  --safe-inset: 48px;
+  --card-radius: 20px;
+  --focus-ring: 4px;
+  --sidebar-width: 296px;
+  --focus-duration: 55ms;
+}

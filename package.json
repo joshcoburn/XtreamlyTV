@@ -1,0 +1,25 @@
+{
+  "name": "xtreamlytv",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Open-source Xtream-compatible IPTV client for living-room TV platforms.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "sync:core": "node scripts/sync-web-core.mjs",
+    "tokens": "node scripts/generate-tokens.mjs",
+    "prepare:apps": "npm run sync:core && npm run tokens",
+    "check:webos": "node scripts/check-webos.mjs",
+    "test:core": "node --test packages/core-web/test/*.test.mjs",
+    "test:webos": "python3 apps/webos/tests/browser_smoke.py",
+    "build:webos": "node scripts/build-webos.mjs",
+    "build:android": "node scripts/build-android.mjs",
+    "build": "npm run prepare:apps && npm run check:webos && npm run test:core && npm run build:webos",
+    "release:notes": "node scripts/release-notes.mjs",
+    "check:versions": "node scripts/check-versions.mjs",
+    "check": "npm run prepare:apps && npm run check:versions && npm run check:webos && npm run check:bridge && npm run test:core",
+    "check:bridge": "node scripts/check-bridge.mjs"
+  }
+}

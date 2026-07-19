@@ -1,0 +1,14 @@
+{
+  "id": "com.github.xtreamlytv.webos",
+  "version": "0.4.0",
+  "vendor": "XtreamlyTV Contributors",
+  "type": "web",
+  "main": "index.html",
+  "title": "XtreamlyTV",
+  "icon": "assets/icon.png",
+  "largeIcon": "assets/largeIcon.png",
+  "splashBackground": "assets/splash.png",
+  "resolution": "1920x1080",
+  "transparent": false,
+  "disableBackHistoryAPI": true
+}

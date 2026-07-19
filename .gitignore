@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.gradle/
+**/.gradle/
+
+# Build output
+dist/
+build/
+**/build/
+**/dist/
+*.ipk
+*.apk
+*.aab
+
+# Android local configuration
+local.properties
+*.jks
+*.keystore
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+!.env.example
+keystore.properties
+
+# Test artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+playwright-report/
+test-results/
+
+.gradle-bootstrap/
+**/.gradle-bootstrap/

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xtreamlytv.github.io/contracts/catalog-item.schema.json",
+  "title": "Normalized XtreamlyTV catalog item",
+  "type": "object",
+  "required": ["id", "type", "name"],
+  "properties": {
+    "id": { "type": "string" },
+    "type": { "enum": ["live", "movie", "series", "episode"] },
+    "name": { "type": "string" },
+    "categoryId": { "type": ["string", "null"] },
+    "imageUrl": { "type": ["string", "null"] },
+    "containerExtension": { "type": ["string", "null"] },
+    "rating": { "type": ["number", "null"] }
+  },
+  "additionalProperties": true
+}

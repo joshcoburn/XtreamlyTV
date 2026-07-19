@@ -1,0 +1,45 @@
+name: webOS
+
+on:
+  push:
+    paths:
+      - 'apps/webos/**'
+      - 'packages/core-web/**'
+      - 'packages/design-tokens/**'
+      - 'scripts/**'
+      - 'package.json'
+      - '.github/workflows/webos.yml'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare generated source
+        run: npm run prepare:apps
+      - name: Validate JavaScript and contracts
+        run: |
+          npm run check:webos
+          npm run test:core
+      - name: Install browser smoke-test dependencies
+        run: |
+          python -m pip install -r apps/webos/tests/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Browser smoke test
+        run: python apps/webos/tests/browser_smoke.py
+      - name: Install webOS CLI
+        run: npm install -g @webos-tools/cli
+      - name: Package webOS app
+        run: npm run build:webos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xtreamlytv-webos
+          path: dist/webos/*.ipk

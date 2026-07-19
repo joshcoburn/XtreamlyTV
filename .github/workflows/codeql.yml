@@ -30,7 +30,7 @@ jobs:
         if: matrix.language == 'java-kotlin'
         with:
           node-version: 22
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         if: matrix.language == 'java-kotlin'
       - name: Install Android SDK
         if: matrix.language == 'java-kotlin'

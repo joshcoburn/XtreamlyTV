@@ -287,7 +287,7 @@ private fun SettingsScreen(state: AppUiState, viewModel: AppViewModel) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text("About", color = BrandTokens.Text, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-            Text("Version 0.4.0 · Android TV preview", color = BrandTokens.Muted, fontSize = 19.sp)
+            Text("Version 0.4.1 · Android TV preview", color = BrandTokens.Muted, fontSize = 19.sp)
             Text("Application ID: com.github.xtreamlytv.androidtv", color = BrandTokens.Muted, fontSize = 19.sp)
             Text("Device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}", color = BrandTokens.Muted, fontSize = 19.sp)
             Text("Android ${android.os.Build.VERSION.RELEASE} · API ${android.os.Build.VERSION.SDK_INT}", color = BrandTokens.Muted, fontSize = 19.sp)

@@ -99,21 +99,67 @@ def main() -> None:
         assert page.evaluate("document.activeElement.dataset.homeRow") == "0"
         assert page.evaluate("document.querySelector('.scroll-view').scrollTop") < 40
 
-        # Favorites are grouped explicitly by media type.
-        page.evaluate("""() => {
-            XtreamlyTVStore.toggleFavorite(XtreamlyTVMock.liveStreams[0], 'live');
-            XtreamlyTVStore.toggleFavorite(XtreamlyTVMock.vodStreams[0], 'movie');
-            XtreamlyTVStore.toggleFavorite(XtreamlyTVMock.series[0], 'series');
+        # Favorites combine top-row filters, built-in/custom groups, and a group rail.
+        custom_group_id = page.evaluate("""() => {
+            const live = XtreamlyTVMock.liveStreams[0];
+            const movie = XtreamlyTVMock.vodStreams[0];
+            const series = XtreamlyTVMock.series[0];
+            if (!XtreamlyTVStore.isFavorite('live', live.stream_id)) XtreamlyTVStore.toggleFavorite(live, 'live');
+            if (!XtreamlyTVStore.isFavorite('movie', movie.stream_id)) XtreamlyTVStore.toggleFavorite(movie, 'movie');
+            if (!XtreamlyTVStore.isFavorite('series', series.series_id)) XtreamlyTVStore.toggleFavorite(series, 'series');
+            const group = XtreamlyTVStore.saveFavoriteGroup({
+                name: 'Weekend Picks',
+                icon: 'star',
+                color: 'rose',
+                itemKeys: [
+                    XtreamlyTVStore.favoriteKey('live', live.stream_id),
+                    XtreamlyTVStore.favoriteKey('movie', movie.stream_id)
+                ]
+            });
             XtreamlyTVApp.state = XtreamlyTVStore.getState();
+            XtreamlyTVApp.favoriteMode = 'home';
+            XtreamlyTVApp.favoriteFilter = 'all';
             XtreamlyTVApp.renderShell('favorites');
+            return group.id;
         }""")
-        favorite_headings = page.locator('.favorites-group .section-head h2').all_inner_texts()
-        assert favorite_headings == ['Live TV', 'Movies', 'Series']
-        page.evaluate("""() => {
-            XtreamlyTVStore.toggleFavorite(XtreamlyTVMock.liveStreams[0], 'live');
-            XtreamlyTVStore.toggleFavorite(XtreamlyTVMock.vodStreams[0], 'movie');
-            XtreamlyTVStore.toggleFavorite(XtreamlyTVMock.series[0], 'series');
+        assert page.locator('[data-favorite-home-filter]').all_inner_texts() == ['All', 'Live TV', 'Movies', 'Series']
+        group_names = page.locator('[data-favorite-group] .favorite-group-copy strong').all_inner_texts()
+        assert group_names[:4] == ['All Favorites', 'Live TV', 'Movies', 'Series']
+        assert 'Weekend Picks' in group_names
+        assert page.locator('.favorite-groups-row #addFavoriteGroupCard').count() == 1
+        assert 'Recently watched favorites' in page.locator('.favorites-home').inner_text()
+
+        page.click(f'[data-favorite-group="{custom_group_id}"]')
+        assert page.locator('.favorite-group-header h2').inner_text() == 'Weekend Picks'
+        assert page.locator('.favorite-group-button').count() >= 5
+        assert page.evaluate('XtreamlyTVApp.virtualGrid.columns') == 5
+        assert page.evaluate('XtreamlyTVApp.virtualGrid.visibleRows') == 2
+        page.locator('#favoriteGrid [data-content-type="movie"]').click()
+        page.wait_for_selector('#playMovie')
+        page.click('#closeDetail')
+        assert page.locator('.favorite-group-header h2').inner_text() == 'Weekend Picks'
+        page.click('[data-favorite-filter="live"]')
+        assert page.evaluate('XtreamlyTVApp.virtualGrid.columns') == 4
+        assert page.locator('#favoriteGrid .channel-tile').count() >= 1
+        page.click('#editFavoriteGroup')
+        assert page.locator('#favoriteGroupName').input_value() == 'Weekend Picks'
+        assert page.locator('#favoriteSelectionCount').inner_text() == '2'
+        page.click('#cancelFavoriteEditor')
+        assert page.locator('.favorite-group-header h2').inner_text() == 'Weekend Picks'
+
+        # Removing a favorite also removes stale membership from custom collections.
+        page.evaluate("""id => {
+            const live = XtreamlyTVMock.liveStreams[0];
+            XtreamlyTVStore.toggleFavorite(live, 'live');
             XtreamlyTVApp.state = XtreamlyTVStore.getState();
+        }""", custom_group_id)
+        assert page.evaluate("""id => {
+            const group = XtreamlyTVStore.getState().favoriteGroups.find(entry => entry.id === id);
+            return group.itemKeys.some(key => key.startsWith('live:'));
+        }""", custom_group_id) is False
+
+        page.evaluate("""() => {
+            XtreamlyTVApp.favoriteMode = 'home';
             XtreamlyTVApp.renderShell('live');
         }""")
         assert page.locator('[data-catalog-category="all"]').count() == 0
@@ -134,9 +180,14 @@ def main() -> None:
         first_tile = page.locator('#catalogGrid .channel-tile').first
         first_tile.focus()
         first_id = first_tile.get_attribute('data-content-id')
+        page.evaluate("id => { if (XtreamlyTVStore.isFavorite('live', id)) { const item = XtreamlyTVApp.resolveItem('live', id); XtreamlyTVStore.toggleFavorite(item, 'live'); XtreamlyTVApp.state = XtreamlyTVStore.getState(); } }", first_id)
+        first_tile.focus()
         page.evaluate("document.dispatchEvent(new KeyboardEvent('keydown', {keyCode:403, bubbles:true}))")
         assert page.evaluate("id => XtreamlyTVStore.isFavorite('live', id)", first_id)
         assert page.locator('#menuHint.visible').count() == 1
+        assert float(page.evaluate("parseFloat(getComputedStyle(document.querySelector('#menuHintText')).marginLeft)")) >= 10
+        assert float(page.evaluate("parseFloat(getComputedStyle(document.querySelector('.nav-item .nav-icon')).marginRight)")) >= 20
+        assert float(page.evaluate("parseFloat(getComputedStyle(document.querySelector('.nav-item')).fontSize)")) >= 21
         page.evaluate("document.dispatchEvent(new KeyboardEvent('keydown', {keyCode:403, bubbles:true}))")
         assert not page.evaluate("id => XtreamlyTVStore.isFavorite('live', id)", first_id)
 
@@ -191,12 +242,14 @@ def main() -> None:
         page.click("#closeSeries")
         page.click('[data-view="settings"]')
         assert page.locator('#providerPassword').get_attribute('type') == 'password'
-        assert page.locator('.about-list').inner_text().find('0.4.0') >= 0
+        assert page.locator('.about-list').inner_text().find('0.4.1') >= 0
         page.click('[data-view="live"]')
         page.click('[data-catalog-category="2"]')
         page.wait_for_selector("#catalogGrid .channel-tile")
         page.locator("#catalogGrid .channel-tile").first.click()
         page.wait_for_selector("#player")
+        assert page.locator('.player-hints .red-key').count() == 1
+        assert page.evaluate("getComputedStyle(document.querySelector('.player-hints .red-key')).color") != 'rgb(255, 255, 255)'
         assert page.evaluate(
             "getComputedStyle(document.querySelector('.shell')).visibility"
         ) == "hidden"

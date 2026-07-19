@@ -2,6 +2,26 @@
 
 All notable changes are documented here. XtreamlyTV follows semantic versioning.
 
+## 0.4.1 - 2026-07-19
+
+### Favorites overhaul
+
+- Rebuilt Favorites as a personalized landing page with **All**, **Live TV**, **Movies**, and **Series** filter chips.
+- Added built-in media groups plus user-created collections for categories such as Sports, Kids, News, or Weekend Movies.
+- Added a dedicated group browser with a left-side group rail and normal four-column Live TV / five-column poster grids.
+- Added virtualized mixed-content grids so large favorite collections remain responsive.
+- Added an Add/Edit Group screen with custom names, icons, colors, media filters, item selection, and two-step deletion.
+- Added automatic cleanup of custom-group membership when an item is removed from Favorites.
+- Added Recently Watched Favorites sourced from actual watch history.
+
+### UI polish
+
+- Increased primary typography sizes throughout the TV interface for better viewing distance readability.
+- Increased spacing between sidebar icons and navigation labels.
+- Colored the player **RED** favorite key hint red to match the physical remote button.
+- Added reliable spacing between the red key badge and Favorites menu tooltip text on legacy webOS Chromium.
+- Added browser smoke coverage for favorite groups, filters, persistence cleanup, virtualized group layouts, and UI styling.
+
 ## 0.4.0 - 2026-07-19
 
 ### Repository and tooling

@@ -4,7 +4,7 @@
   var BACK = 461, PLAY = 415, PAUSE = 19, STOP = 413, RED = 403, GREEN = 404;
   var APP_NAME = 'XtreamlyTV';
   var APP_ID = 'com.github.xtreamlytv.webos';
-  var APP_VERSION = '0.4.0';
+  var APP_VERSION = '0.4.1';
 
   function escapeHtml(value) {
     return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) {
@@ -20,6 +20,11 @@
     else if (name === 'popcorn') body = '<path d="M6.3 9.2h11.4L16.2 21H7.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.3 9.5 10.2 21M14.7 9.5 13.8 21" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".75"/><path d="M6.7 9.2a3.1 3.1 0 0 1 1.6-5.8 3.3 3.3 0 0 1 6.2.4 3 3 0 0 1 3.1 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
     else if (name === 'play') body = '<rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m10 8 6.5 4-6.5 4z" fill="currentColor"/>';
     else if (name === 'heart') body = '<path d="M12 20.2 4.3 12.8C-.1 8.7 5.8 2.4 12 7.2c6.2-4.8 12.1 1.5 7.7 5.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>';
+    else if (name === 'plus') body = '<path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+    else if (name === 'folder') body = '<path d="M3 6.5h6l2 2h10v10.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>';
+    else if (name === 'star') body = '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>';
+    else if (name === 'trophy') body = '<path d="M8 4h8v4.5c0 3-1.7 5.2-4 5.2s-4-2.2-4-5.2zM10 14v3h4v-3M8 20h8M6.5 6H4v2.5A3.5 3.5 0 0 0 7.5 12M17.5 6H20v2.5a3.5 3.5 0 0 1-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>';
+    else if (name === 'smile') body = '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 10h.01M15.5 10h.01M8.5 14.5c1.9 2 5.1 2 7 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
     else if (name === 'settings') body = '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a8 8 0 0 0 .1-6l2-1.2-2-3.4-2.1 1.2a8.4 8.4 0 0 0-5.2-2.1L12 1H8l-.2 2.5a8.4 8.4 0 0 0-3.2 2.1L2.5 4.4.5 7.8l2 1.2a8 8 0 0 0 .1 6l-2.1 1.2 2 3.4 2.2-1.2a8.2 8.2 0 0 0 5.1 2.1L8 23h4l.2-2.5a8.2 8.2 0 0 0 5.1-2.1l2.2 1.2 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>';
     return '<svg class="' + className + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + body + '</svg>';
   }
@@ -195,6 +200,11 @@
     playerHasPlayed: false,
     lastPlaybackToggleAt: 0,
     lastProgressSave: 0,
+    favoriteMode: 'home',
+    favoriteFilter: 'all',
+    favoriteGroupId: 'all',
+    favoriteEditor: null,
+    favoriteDeleteArmed: false,
 
     init: function () {
       this.applyTheme(this.state.settings.theme || 'teal');
@@ -575,6 +585,12 @@
       Array.prototype.forEach.call(document.querySelectorAll('[data-view]'), function (button) {
         button.addEventListener('click', function () {
           self.detail = null;
+          if (button.dataset.view === 'favorites') {
+            self.favoriteMode = 'home';
+            self.favoriteFilter = 'all';
+            self.favoriteGroupId = 'all';
+            self.favoriteEditor = null;
+          }
           self.currentView = button.dataset.view;
           self.renderShell(self.currentView);
         });
@@ -807,8 +823,8 @@
       return source.find(function (item) { return typeOf(item) === type && idOf(item, type) === String(id); });
     },
 
-    openContent: function (item, type) {
-      if (type === 'live') this.playMedia(item, 'live', this.currentFilteredItems.live.length ? this.currentFilteredItems.live : [item]);
+    openContent: function (item, type, list) {
+      if (type === 'live') this.playMedia(item, 'live', list && list.length ? list : (this.currentFilteredItems.live.length ? this.currentFilteredItems.live : [item]));
       else if (type === 'movie') this.openMovieDetail(item);
       else if (type === 'series') this.openSeriesDetail(item);
       else if (type === 'episode') this.playMedia(item, 'episode', [], item.parent_series || null);
@@ -976,8 +992,9 @@
 
     openMovieDetail: function (movie) {
       var self = this;
-      this.detail = { type: 'movie', item: movie, info: null, loading: true, error: '' };
-      this.renderShell('movies');
+      var returnView = this.currentView === 'favorites' ? 'favorites' : 'movies';
+      this.detail = { type: 'movie', item: movie, info: null, loading: true, error: '', returnView:returnView };
+      this.renderShell(returnView);
       this.api.getVodInfo(movie.stream_id).then(function (response) {
         if (!self.detail || self.detail.type !== 'movie' || String(self.detail.item.stream_id) !== String(movie.stream_id)) return;
         self.detail.info = normalizeMovie(movie, response);
@@ -1012,14 +1029,15 @@
         '<div class="detail-facts">' + (movie.cast ? '<div><span>Cast</span><strong>' + escapeHtml(movie.cast) + '</strong></div>' : '') + (movie.director ? '<div><span>Director</span><strong>' + escapeHtml(movie.director) + '</strong></div>' : '') + '</div></div></div></section></div>';
       document.getElementById('playMovie').addEventListener('click', function () { self.playMedia(movie, 'movie'); });
       document.getElementById('favoriteMovie').addEventListener('click', function () { XtreamlyTVStore.toggleFavorite(self.detail.item, 'movie'); self.state = XtreamlyTVStore.getState(); self.renderMovieDetail(); self.toast(favorite ? 'Removed from favorites' : 'Added to favorites'); });
-      document.getElementById('closeDetail').addEventListener('click', function () { self.detail = null; self.renderShell('movies'); });
+      document.getElementById('closeDetail').addEventListener('click', function () { var returnView = self.detail && self.detail.returnView || 'movies'; self.detail = null; self.renderShell(returnView); });
       XtreamlyTVNavigation.focusFirst('#playMovie');
     },
 
     openSeriesDetail: function (series) {
       var self = this;
-      this.detail = { type: 'series', item: series, info: null, loading: true, error: '', season: null };
-      this.renderShell('series');
+      var returnView = this.currentView === 'favorites' ? 'favorites' : 'series';
+      this.detail = { type: 'series', item: series, info: null, loading: true, error: '', season: null, returnView:returnView };
+      this.renderShell(returnView);
       this.api.getSeriesInfo(series.series_id).then(function (response) {
         if (!self.detail || self.detail.type !== 'series' || String(self.detail.item.series_id) !== String(series.series_id)) return;
         self.detail.info = response || {};
@@ -1087,7 +1105,7 @@
         (this.detail.error ? '<p class="detail-warning">' + escapeHtml(this.detail.error) + '</p>' : '') +
         '<div class="episode-grid">' + (episodes.length ? episodes.map(this.episodeCardHtml.bind(this)).join('') : '<div class="empty-state grid-empty">No episodes were returned for this season.</div>') + '</div></section></div>';
       document.getElementById('favoriteSeries').addEventListener('click', function () { XtreamlyTVStore.toggleFavorite(self.detail.item, 'series'); self.state = XtreamlyTVStore.getState(); self.renderSeriesDetail(); self.toast(favorite ? 'Removed from favorites' : 'Added to favorites'); });
-      document.getElementById('closeSeries').addEventListener('click', function () { self.detail = null; self.renderShell('series'); });
+      document.getElementById('closeSeries').addEventListener('click', function () { var returnView = self.detail && self.detail.returnView || 'series'; self.detail = null; self.renderShell(returnView); });
       Array.prototype.forEach.call(document.querySelectorAll('[data-season]'), function (button) {
         button.addEventListener('click', function () { self.detail.season = button.dataset.season; self.renderSeriesDetail(); });
       });
@@ -1112,23 +1130,358 @@
       });
     },
 
+    favoriteKeyForItem: function (item) {
+      var type = typeOf(item);
+      return XtreamlyTVStore.favoriteKey(type, idOf(item, type));
+    },
+
+    favoriteSystemGroups: function () {
+      var favorites = this.state.favorites || [];
+      return [
+        { id:'all', name:'All Favorites', icon:'heart', color:'purple', system:true, count:favorites.length },
+        { id:'live', name:'Live TV', icon:'tv', color:'blue', system:true, count:favorites.filter(function (item) { return typeOf(item) === 'live'; }).length },
+        { id:'movie', name:'Movies', icon:'popcorn', color:'teal', system:true, count:favorites.filter(function (item) { return typeOf(item) === 'movie'; }).length },
+        { id:'series', name:'Series', icon:'play', color:'orange', system:true, count:favorites.filter(function (item) { return typeOf(item) === 'series'; }).length }
+      ];
+    },
+
+    favoriteGroups: function () {
+      return this.favoriteSystemGroups().concat((this.state.favoriteGroups || []).map(function (group) {
+        return Object.assign({}, group, { system:false });
+      }));
+    },
+
+    favoriteGroupById: function (id) {
+      return this.favoriteGroups().find(function (group) { return group.id === String(id); }) || this.favoriteSystemGroups()[0];
+    },
+
+    favoriteItemsForGroup: function (groupId) {
+      var favorites = this.state.favorites || [];
+      groupId = String(groupId || 'all');
+      if (groupId === 'all') return favorites.slice();
+      if (groupId === 'live' || groupId === 'movie' || groupId === 'series') {
+        return favorites.filter(function (item) { return typeOf(item) === groupId; });
+      }
+      var group = (this.state.favoriteGroups || []).find(function (entry) { return entry.id === groupId; });
+      if (!group) return [];
+      var keys = {};
+      (group.itemKeys || []).forEach(function (key) { keys[key] = true; });
+      return favorites.filter(function (item) { return keys[App.favoriteKeyForItem(item)]; });
+    },
+
+    filterFavoriteItems: function (items, filter) {
+      filter = String(filter || 'all');
+      if (filter === 'all') return (items || []).slice();
+      return (items || []).filter(function (item) { return typeOf(item) === filter; });
+    },
+
+    favoriteFiltersForItems: function (items, includeEmpty) {
+      var filters = [{ id:'all', label:'All' }];
+      var definitions = [
+        { id:'live', label:'Live TV' },
+        { id:'movie', label:'Movies' },
+        { id:'series', label:'Series' }
+      ];
+      definitions.forEach(function (definition) {
+        if (includeEmpty || (items || []).some(function (item) { return typeOf(item) === definition.id; })) filters.push(definition);
+      });
+      return filters;
+    },
+
+    favoriteFilterHtml: function (filters, active, attribute) {
+      attribute = attribute || 'data-favorite-filter';
+      return '<div class="favorite-filter-row">' + filters.map(function (filter) {
+        return '<button class="favorite-filter-chip focusable ' + (String(active) === filter.id ? 'active' : '') + '" ' + attribute + '="' + filter.id + '">' + escapeHtml(filter.label) + '</button>';
+      }).join('') + '</div>';
+    },
+
+    favoriteGroupIconHtml: function (group, className) {
+      return '<span class="' + (className || 'favorite-group-icon') + '">' + uiIcon(group.icon || 'folder', 'favorite-group-svg') + '</span>';
+    },
+
+    favoriteGroupCount: function (group, filter) {
+      return this.filterFavoriteItems(this.favoriteItemsForGroup(group.id), filter || 'all').length;
+    },
+
+    favoriteGroupCardHtml: function (group, filter) {
+      var count = this.favoriteGroupCount(group, filter);
+      return '<button class="favorite-group-card favorite-color-' + escapeHtml(group.color || 'purple') + ' focusable" data-favorite-group="' + escapeHtml(group.id) + '">' +
+        this.favoriteGroupIconHtml(group) + '<span class="favorite-group-copy"><strong>' + escapeHtml(group.name) + '</strong><small>' + count + (count === 1 ? ' item' : ' items') + '</small></span></button>';
+    },
+
+    favoriteRecentItems: function (filter) {
+      var favorites = {};
+      (this.state.favorites || []).forEach(function (item) { favorites[App.favoriteKeyForItem(item)] = item; });
+      var recent = [];
+      (this.state.recent || []).forEach(function (item) {
+        var favorite = favorites[App.favoriteKeyForItem(item)];
+        if (favorite && !recent.some(function (entry) { return App.favoriteKeyForItem(entry) === App.favoriteKeyForItem(favorite); })) recent.push(favorite);
+      });
+      return this.filterFavoriteItems(recent, filter).slice(0, 7);
+    },
+
     renderFavorites: function () {
+      this.destroyVirtualGrid();
+      if (this.favoriteMode === 'editor') this.renderFavoriteEditor();
+      else if (this.favoriteMode === 'group') this.renderFavoriteGroup();
+      else this.renderFavoritesHome();
+    },
+
+    renderFavoritesHome: function () {
+      var self = this;
       var view = document.getElementById('view');
-      var favorites = this.state.favorites;
-      if (!favorites.length) {
-        view.innerHTML = '<div class="empty-state"><div><div class="empty-icon">♡</div>No favorites yet.<br><span>Focus a channel, movie, or series card and press the red remote button.</span></div></div>';
-        XtreamlyTVNavigation.focusFirst('.nav-item.active');
+      var favorites = this.state.favorites || [];
+      var filter = this.favoriteFilter || 'all';
+      var recent = this.favoriteRecentItems(filter);
+      var systemGroups = this.favoriteSystemGroups();
+      var customGroups = (this.state.favoriteGroups || []).map(function (group) { return Object.assign({}, group, { system:false }); });
+      var groups;
+      if (filter === 'all') groups = systemGroups.concat(customGroups);
+      else {
+        groups = systemGroups.filter(function (group) { return group.id === filter; }).concat(customGroups.filter(function (group) {
+          return self.favoriteGroupCount(group, filter) > 0;
+        }));
+      }
+      var recentHtml = recent.length ? this.contentSection('Recently watched favorites', recent) :
+        '<section class="section favorite-empty-strip"><div class="section-head"><h2>Recently watched favorites</h2></div><div class="favorite-empty-copy">Favorite something you watch and it will appear here.</div></section>';
+      var emptyHtml = favorites.length ? '' : '<div class="favorite-onboarding"><span class="favorite-onboarding-icon">♡</span><div><strong>Your favorites are ready for you.</strong><p>Focus a channel, movie, or series anywhere in XtreamlyTV and press the red remote button.</p></div></div>';
+      view.innerHTML = '<div class="scroll-view favorites-home"><div class="favorites-intro"><div><p>Your favorite content, organized your way.</p></div><div class="favorites-intro-actions"><button id="browseFavoriteGroups" class="secondary-button focusable">Browse all</button><button id="newFavoriteGroup" class="primary-button focusable">+ New group</button></div></div>' +
+        this.favoriteFilterHtml(this.favoriteFiltersForItems(favorites, true), filter, 'data-favorite-home-filter') + emptyHtml + recentHtml +
+        '<section class="section favorite-groups-section"><div class="section-head"><h2>My Groups</h2><span class="section-meta">Create collections for sports, kids, news, or anything else</span></div><div class="favorite-groups-row">' +
+        groups.map(function (group) { return self.favoriteGroupCardHtml(group, filter); }).join('') +
+        '<button class="favorite-group-card favorite-add-group focusable" id="addFavoriteGroupCard"><span class="favorite-group-icon">' + uiIcon('plus', 'favorite-group-svg') + '</span><span class="favorite-group-copy"><strong>Add Group</strong><small>Build a custom collection</small></span></button></div></section></div>';
+
+      Array.prototype.forEach.call(document.querySelectorAll('[data-favorite-home-filter]'), function (button) {
+        button.addEventListener('click', function () {
+          self.favoriteFilter = button.dataset.favoriteHomeFilter;
+          self.renderFavoritesHome();
+          XtreamlyTVNavigation.focusFirst('[data-favorite-home-filter="' + self.favoriteFilter + '"]');
+        });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-favorite-group]'), function (button) {
+        button.addEventListener('click', function () { self.openFavoriteGroup(button.dataset.favoriteGroup, filter); });
+      });
+      document.getElementById('browseFavoriteGroups').addEventListener('click', function () { self.openFavoriteGroup('all', filter); });
+      document.getElementById('newFavoriteGroup').addEventListener('click', function () { self.beginFavoriteEditor(); });
+      document.getElementById('addFavoriteGroupCard').addEventListener('click', function () { self.beginFavoriteEditor(); });
+      this.bindContentCards();
+      XtreamlyTVNavigation.focusFirst('[data-favorite-home-filter].active');
+    },
+
+    openFavoriteGroup: function (groupId, filter) {
+      var items = this.favoriteItemsForGroup(groupId);
+      var available = this.favoriteFiltersForItems(items, false).map(function (entry) { return entry.id; });
+      this.favoriteGroupId = String(groupId || 'all');
+      this.favoriteFilter = available.indexOf(filter) >= 0 ? filter : 'all';
+      this.favoriteMode = 'group';
+      this.renderFavorites();
+    },
+
+    favoriteMixedCardHtml: function (item) {
+      var type = typeOf(item);
+      var id = idOf(item, type);
+      var label = type === 'live' ? 'Live TV' : (type === 'movie' ? (yearOf(item) || 'Movie') : 'Series');
+      var art = type === 'live' ? '<div class="favorite-live-art">' + logo(item, 'favorite-live-logo') + '<span class="favorite-live-label">LIVE</span></div>' : poster(item, type, 'favorite-mixed-art');
+      return '<button class="favorite-mixed-card focusable" data-content-type="' + type + '" data-content-id="' + escapeHtml(id) + '">' + art + '<div class="favorite-mixed-copy"><strong>' + escapeHtml(titleOf(item)) + '</strong><span>' + escapeHtml(label) + '</span></div></button>';
+    },
+
+    renderFavoriteGroup: function () {
+      var self = this;
+      var view = document.getElementById('view');
+      var group = this.favoriteGroupById(this.favoriteGroupId);
+      var groupItems = this.favoriteItemsForGroup(group.id);
+      var filters = this.favoriteFiltersForItems(groupItems, false);
+      if (!filters.some(function (filter) { return filter.id === self.favoriteFilter; })) this.favoriteFilter = 'all';
+      var filtered = this.filterFavoriteItems(groupItems, this.favoriteFilter);
+      var groups = this.favoriteGroups();
+      view.innerHTML = '<div class="favorites-browser"><aside class="favorite-group-rail"><div class="favorite-rail-title"><strong>All Groups</strong><span>' + (this.state.favorites || []).length + ' favorites</span></div><div class="favorite-rail-list">' +
+        groups.map(function (entry) {
+          return '<button class="favorite-group-button focusable ' + (entry.id === group.id ? 'active' : '') + '" data-favorite-rail-group="' + escapeHtml(entry.id) + '">' + self.favoriteGroupIconHtml(entry, 'favorite-rail-icon') + '<span><strong>' + escapeHtml(entry.name) + '</strong><small>' + self.favoriteItemsForGroup(entry.id).length + ' items</small></span></button>';
+        }).join('') + '</div><button id="railAddFavoriteGroup" class="favorite-rail-add focusable">' + uiIcon('plus', 'favorite-group-svg') + '<span>New group</span></button></aside>' +
+        '<section class="favorite-group-browser"><header class="favorite-group-header"><div><button id="favoriteGroupsBack" class="favorite-back-button focusable">‹ Groups</button><h2>' + escapeHtml(group.name) + '</h2><p>' + groupItems.length + (groupItems.length === 1 ? ' item' : ' items') + '</p></div><div class="favorite-group-actions">' + (!group.system ? '<button id="editFavoriteGroup" class="secondary-button focusable">Edit group</button>' : '') + '<button id="newFavoriteGroupFromBrowser" class="primary-button focusable">+ New group</button></div></header>' +
+        this.favoriteFilterHtml(filters, this.favoriteFilter, 'data-favorite-filter') +
+        '<div id="favoriteGridStatus" class="favorite-grid-status">' + (!filtered.length ? '<div class="favorite-grid-empty"><span>♡</span><strong>No ' + (this.favoriteFilter === 'all' ? 'items' : filters.find(function (entry) { return entry.id === self.favoriteFilter; }).label.toLowerCase()) + ' in this group.</strong><p>Edit the group to add favorites, or choose another filter.</p></div>' : '') + '</div>' +
+        '<div id="favoriteGrid" class="favorite-grid favorite-grid-' + escapeHtml(this.favoriteFilter) + '"></div></section></div>';
+
+      Array.prototype.forEach.call(document.querySelectorAll('[data-favorite-rail-group]'), function (button) {
+        button.addEventListener('click', function () { self.openFavoriteGroup(button.dataset.favoriteRailGroup, 'all'); });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-favorite-filter]'), function (button) {
+        button.addEventListener('click', function () {
+          self.favoriteFilter = button.dataset.favoriteFilter;
+          self.renderFavoriteGroup();
+          XtreamlyTVNavigation.focusFirst('[data-favorite-filter="' + self.favoriteFilter + '"]');
+        });
+      });
+      document.getElementById('favoriteGroupsBack').addEventListener('click', function () { self.favoriteMode = 'home'; self.renderFavorites(); });
+      document.getElementById('railAddFavoriteGroup').addEventListener('click', function () { self.beginFavoriteEditor(); });
+      document.getElementById('newFavoriteGroupFromBrowser').addEventListener('click', function () { self.beginFavoriteEditor(); });
+      var edit = document.getElementById('editFavoriteGroup');
+      if (edit) edit.addEventListener('click', function () { self.beginFavoriteEditor(group.id); });
+      if (filtered.length) this.setupFavoriteGrid(filtered);
+      else XtreamlyTVNavigation.focusFirst('[data-favorite-filter].active, .favorite-group-button.active');
+    },
+
+    setupFavoriteGrid: function (items) {
+      var self = this;
+      var container = document.getElementById('favoriteGrid');
+      if (!container) return;
+      var filter = this.favoriteFilter;
+      var config;
+      if (filter === 'live') config = { columns:4, visibleRows:4, rowHeight:188, gap:16 };
+      else config = { columns:5, visibleRows:2, rowHeight:382, gap:18 };
+      container.classList.add(filter === 'live' ? 'channel-grid' : (filter === 'all' ? 'favorite-mixed-grid' : 'poster-grid'));
+      this.virtualGrid = new XtreamlyTVVirtualGrid({
+        container:container,
+        columns:config.columns,
+        visibleRows:config.visibleRows,
+        rowHeight:config.rowHeight,
+        gap:config.gap,
+        overscan:2,
+        renderItem:function (item) {
+          if (filter === 'live') return self.channelTileHtml(item);
+          if (filter === 'movie' || filter === 'series') return self.posterCardHtml(item, filter);
+          return self.favoriteMixedCardHtml(item);
+        },
+        onActivate:function (item) { self.openContent(item, typeOf(item), items); }
+      });
+      this.virtualGrid.setItems(items);
+      setTimeout(function () { self.virtualGrid.focusIndex(0); }, 0);
+    },
+
+    beginFavoriteEditor: function (groupId) {
+      var group = (this.state.favoriteGroups || []).find(function (entry) { return entry.id === String(groupId || ''); });
+      this.favoriteEditor = group ? {
+        id:group.id,
+        name:group.name,
+        icon:group.icon,
+        color:group.color,
+        itemKeys:(group.itemKeys || []).slice(),
+        filter:'all'
+      } : { id:'', name:'', icon:'folder', color:'purple', itemKeys:[], filter:'all' };
+      this.favoriteDeleteArmed = false;
+      this.favoriteMode = 'editor';
+      this.renderFavorites();
+    },
+
+    favoriteSelectionCardHtml: function (item) {
+      var type = typeOf(item);
+      var key = this.favoriteKeyForItem(item);
+      var selected = this.favoriteEditor.itemKeys.indexOf(key) >= 0;
+      var label = type === 'live' ? 'Live TV' : (type === 'movie' ? (yearOf(item) || 'Movie') : 'Series');
+      var art = type === 'live' ? '<div class="favorite-live-art">' + logo(item, 'favorite-live-logo') + '</div>' : poster(item, type, 'favorite-mixed-art');
+      return '<button class="favorite-selection-card focusable ' + (selected ? 'selected' : '') + '" data-group-item-key="' + escapeHtml(key) + '">' + art + '<span class="selection-check">✓</span><div class="favorite-mixed-copy"><strong>' + escapeHtml(titleOf(item)) + '</strong><span>' + escapeHtml(label) + '</span></div></button>';
+    },
+
+    renderFavoriteEditor: function () {
+      var self = this;
+      var view = document.getElementById('view');
+      var editor = this.favoriteEditor;
+      if (!editor) { this.favoriteMode = 'home'; this.renderFavoritesHome(); return; }
+      var favorites = this.state.favorites || [];
+      var filtered = this.filterFavoriteItems(favorites, editor.filter || 'all');
+      var icons = ['heart', 'tv', 'popcorn', 'play', 'smile', 'trophy', 'folder', 'star'];
+      var colors = ['purple', 'blue', 'teal', 'orange', 'rose', 'lime', 'slate'];
+      view.innerHTML = '<div class="favorite-editor"><section class="favorite-editor-settings"><button id="cancelFavoriteEditorTop" class="favorite-back-button focusable">‹ Back</button><div class="favorite-editor-heading"><h2>' + (editor.id ? 'Edit Group' : 'Add Group') + '</h2><p>Choose a name, an icon, and which favorites belong in this collection.</p></div>' +
+        '<label class="field"><span>Group name</span><input id="favoriteGroupName" class="focusable" maxlength="36" autocomplete="off" value="' + escapeHtml(editor.name) + '" placeholder="Weekend Movies"></label>' +
+        '<div class="favorite-editor-label">Group icon</div><div class="favorite-icon-picker">' + icons.map(function (icon) { return '<button class="favorite-icon-choice focusable ' + (editor.icon === icon ? 'active' : '') + '" data-favorite-icon="' + icon + '">' + uiIcon(icon, 'favorite-group-svg') + '</button>'; }).join('') + '</div>' +
+        '<div class="favorite-editor-label">Group color</div><div class="favorite-color-picker">' + colors.map(function (color) { return '<button class="favorite-color-choice favorite-color-' + color + ' focusable ' + (editor.color === color ? 'active' : '') + '" data-favorite-color="' + color + '"><span></span></button>'; }).join('') + '</div>' +
+        '<div class="favorite-editor-summary"><strong id="favoriteSelectionCount">' + editor.itemKeys.length + '</strong><span>selected favorites</span></div><div class="favorite-editor-actions"><button id="saveFavoriteGroup" class="primary-button focusable">Save group</button><button id="cancelFavoriteEditor" class="secondary-button focusable">Cancel</button>' + (editor.id ? '<button id="deleteFavoriteGroup" class="danger-button focusable">Delete group</button>' : '') + '</div></section>' +
+        '<section class="favorite-editor-content"><header><div><h3>Choose favorites</h3><p>Press OK to add or remove an item from this group.</p></div></header>' + this.favoriteFilterHtml(this.favoriteFiltersForItems(favorites, true), editor.filter || 'all', 'data-editor-favorite-filter') + '<div id="favoriteEditorGrid" class="favorite-editor-grid"></div></section></div>';
+
+      var nameInput = document.getElementById('favoriteGroupName');
+      nameInput.addEventListener('input', function () { editor.name = nameInput.value; });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-favorite-icon]'), function (button) {
+        button.addEventListener('click', function () {
+          editor.icon = button.dataset.favoriteIcon;
+          Array.prototype.forEach.call(document.querySelectorAll('[data-favorite-icon]'), function (entry) { entry.classList.toggle('active', entry === button); });
+        });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-favorite-color]'), function (button) {
+        button.addEventListener('click', function () {
+          editor.color = button.dataset.favoriteColor;
+          Array.prototype.forEach.call(document.querySelectorAll('[data-favorite-color]'), function (entry) { entry.classList.toggle('active', entry === button); });
+        });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-editor-favorite-filter]'), function (button) {
+        button.addEventListener('click', function () {
+          editor.filter = button.dataset.editorFavoriteFilter;
+          self.renderFavoriteEditor();
+          XtreamlyTVNavigation.focusFirst('[data-editor-favorite-filter="' + editor.filter + '"]');
+        });
+      });
+      function cancelEditor() {
+        self.favoriteEditor = null;
+        self.favoriteDeleteArmed = false;
+        self.favoriteMode = self.favoriteGroupId && self.favoriteGroupId !== 'all' ? 'group' : 'home';
+        self.renderFavorites();
+      }
+      document.getElementById('cancelFavoriteEditorTop').addEventListener('click', cancelEditor);
+      document.getElementById('cancelFavoriteEditor').addEventListener('click', cancelEditor);
+      document.getElementById('saveFavoriteGroup').addEventListener('click', function () {
+        editor.name = String(nameInput.value || '').trim();
+        if (!editor.name) { self.toast('Enter a group name'); nameInput.focus(); return; }
+        var saved = XtreamlyTVStore.saveFavoriteGroup(editor);
+        self.state = XtreamlyTVStore.getState();
+        self.favoriteEditor = null;
+        self.favoriteGroupId = saved.id;
+        self.favoriteFilter = 'all';
+        self.favoriteMode = 'group';
+        self.toast(editor.id ? 'Group updated' : 'Group created');
+        self.renderFavorites();
+      });
+      var deleteButton = document.getElementById('deleteFavoriteGroup');
+      if (deleteButton) deleteButton.addEventListener('click', function () {
+        if (!self.favoriteDeleteArmed) {
+          self.favoriteDeleteArmed = true;
+          deleteButton.textContent = 'Press again to delete';
+          self.toast('Press Delete group again to confirm');
+          return;
+        }
+        XtreamlyTVStore.deleteFavoriteGroup(editor.id);
+        self.state = XtreamlyTVStore.getState();
+        self.favoriteEditor = null;
+        self.favoriteGroupId = 'all';
+        self.favoriteMode = 'home';
+        self.favoriteDeleteArmed = false;
+        self.toast('Group deleted');
+        self.renderFavorites();
+      });
+      this.setupFavoriteEditorGrid(filtered);
+      var menuHint = document.getElementById('menuHint');
+      if (menuHint) { menuHint.classList.remove('visible'); menuHint.setAttribute('aria-hidden', 'true'); }
+      XtreamlyTVNavigation.focusFirst('#cancelFavoriteEditorTop');
+    },
+
+    setupFavoriteEditorGrid: function (items) {
+      var self = this;
+      var container = document.getElementById('favoriteEditorGrid');
+      if (!container) return;
+      if (!items.length) {
+        container.innerHTML = '<div class="favorite-editor-empty">No favorites match this filter.</div>';
         return;
       }
-      var live = favorites.filter(function (item) { return typeOf(item) === 'live'; });
-      var movies = favorites.filter(function (item) { return typeOf(item) === 'movie'; });
-      var series = favorites.filter(function (item) { return typeOf(item) === 'series'; });
-      view.innerHTML = '<div class="scroll-view favorites-groups">' +
-        (live.length ? '<div class="favorites-group favorites-live">' + this.channelSection('Live TV', live) + '</div>' : '') +
-        (movies.length ? '<div class="favorites-group favorites-movies">' + this.posterSection('Movies', movies, 'movie') + '</div>' : '') +
-        (series.length ? '<div class="favorites-group favorites-series">' + this.posterSection('Series', series, 'series') + '</div>' : '') + '</div>';
-      this.bindContentCards();
-      XtreamlyTVNavigation.focusFirst('[data-content-type]');
+      container.classList.add('favorite-mixed-grid');
+      this.virtualGrid = new XtreamlyTVVirtualGrid({
+        container:container,
+        columns:5,
+        visibleRows:2,
+        rowHeight:344,
+        gap:16,
+        overscan:2,
+        renderItem:function (item) { return self.favoriteSelectionCardHtml(item); },
+        onActivate:function (item, index, element) {
+          var key = self.favoriteKeyForItem(item);
+          var keyIndex = self.favoriteEditor.itemKeys.indexOf(key);
+          if (keyIndex >= 0) self.favoriteEditor.itemKeys.splice(keyIndex, 1);
+          else self.favoriteEditor.itemKeys.push(key);
+          var selected = keyIndex < 0;
+          element.classList.toggle('selected', selected);
+          var count = document.getElementById('favoriteSelectionCount');
+          if (count) count.textContent = self.favoriteEditor.itemKeys.length;
+        }
+      });
+      this.virtualGrid.setItems(items);
     },
 
     renderSettings: function () {
@@ -1265,7 +1618,7 @@
       XtreamlyTVStore.addRecent(item, type);
       this.state = XtreamlyTVStore.getState();
       var artwork = type === 'live' ? logo(item) : poster(item, type, 'player-poster');
-      var hints = type === 'live' ? '<span class="key">▲▼</span> Channel &nbsp; <span class="key">◀▶</span> Rewind / forward<br><span class="key">OK</span> Pause / play &nbsp; <span class="key green-key">GREEN</span> Go live &nbsp; <span class="key">RED</span> Favorite' : '<span class="key">◀▶</span> Seek 30 seconds<br><span class="key">OK</span> Pause / play &nbsp; <span class="key">RED</span> Favorite';
+      var hints = type === 'live' ? '<span class="key">▲▼</span> Channel &nbsp; <span class="key">◀▶</span> Rewind / forward<br><span class="key">OK</span> Pause / play &nbsp; <span class="key green-key">GREEN</span> Go live &nbsp; <span class="key red-key">RED</span> Favorite' : '<span class="key">◀▶</span> Seek 30 seconds<br><span class="key">OK</span> Pause / play &nbsp; <span class="key red-key">RED</span> Favorite';
       var player = document.createElement('section');
       player.className = 'player overlay';
       player.id = 'player';
@@ -1760,6 +2113,16 @@
       if (event.keyCode === BACK) {
         event.preventDefault();
         if (this.detail) { this.detail = null; this.renderShell(this.currentView); }
+        else if (this.currentView === 'favorites' && this.favoriteMode === 'editor') {
+          this.favoriteEditor = null;
+          this.favoriteDeleteArmed = false;
+          this.favoriteMode = this.favoriteGroupId && this.favoriteGroupId !== 'all' ? 'group' : 'home';
+          this.renderFavorites();
+        }
+        else if (this.currentView === 'favorites' && this.favoriteMode === 'group') {
+          this.favoriteMode = 'home';
+          this.renderFavorites();
+        }
         else if (this.currentView !== 'home' && document.querySelector('.shell')) this.renderShell('home');
         else if (this.state.credentials || this.demo) this.exitApp();
       }

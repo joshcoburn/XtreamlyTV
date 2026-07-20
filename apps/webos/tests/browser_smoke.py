@@ -242,7 +242,7 @@ def main() -> None:
         page.click("#closeSeries")
         page.click('[data-view="settings"]')
         assert page.locator('#providerPassword').get_attribute('type') == 'password'
-        assert page.locator('.about-list').inner_text().find('0.4.1') >= 0
+        assert page.locator('.about-list').inner_text().find('0.4.2') >= 0
         page.click('[data-view="live"]')
         page.click('[data-catalog-category="2"]')
         page.wait_for_selector("#catalogGrid .channel-tile")

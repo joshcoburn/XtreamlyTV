@@ -3,7 +3,16 @@
         <item name="android:fontFamily">sans</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:colorAccent">#20E7C4</item>
+        <item name="android:colorPrimary">#20E7C4</item>
         <item name="android:navigationBarColor">#071014</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+    </style>
+
+    <style name="Theme.XtreamlyTV.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#071014</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.XtreamlyTV</item>
     </style>
 </resources>

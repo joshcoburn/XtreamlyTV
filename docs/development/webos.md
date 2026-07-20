@@ -72,7 +72,7 @@ ares-package --no-minify -o dist/webos apps/webos/app
 ares-launch --device tv1 --close com.github.xtreamlytv.webos
 
 ares-install --device tv1 \
-  dist/webos/com.github.xtreamlytv.webos_0.4.1_all.ipk
+  dist/webos/com.github.xtreamlytv.webos_0.4.2_all.ipk
 
 ares-launch --device tv1 com.github.xtreamlytv.webos
 ```

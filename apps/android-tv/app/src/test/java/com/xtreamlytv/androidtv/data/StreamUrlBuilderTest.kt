@@ -3,6 +3,7 @@ package com.xtreamlytv.androidtv.data
 import com.xtreamlytv.androidtv.model.CatalogItem
 import com.xtreamlytv.androidtv.model.ContentType
 import com.xtreamlytv.androidtv.model.Credentials
+import com.xtreamlytv.androidtv.model.StreamFormat
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -18,6 +19,18 @@ class StreamUrlBuilderTest {
                 "https://provider.example/live/user%20name/p%2F1/42.ts",
             ),
             StreamUrlBuilder.candidates(credentials, item),
+        )
+    }
+
+    @Test
+    fun liveCandidatesCanPreferTransportStream() {
+        val item = CatalogItem("42", ContentType.LIVE, "Channel")
+        assertEquals(
+            listOf(
+                "https://provider.example/live/user%20name/p%2F1/42.ts",
+                "https://provider.example/live/user%20name/p%2F1/42.m3u8",
+            ),
+            StreamUrlBuilder.candidates(credentials, item, StreamFormat.MPEG_TS),
         )
     }
 

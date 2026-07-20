@@ -5,6 +5,7 @@ import com.xtreamlytv.androidtv.model.Category
 import com.xtreamlytv.androidtv.model.ContentType
 import com.xtreamlytv.androidtv.model.Credentials
 import com.xtreamlytv.androidtv.model.ProviderSummary
+import com.xtreamlytv.androidtv.model.StreamFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -25,7 +26,7 @@ class XtreamClient(
     private val http: OkHttpClient = defaultHttpClient(),
 ) {
     private val json = Json { ignoreUnknownKeys = true; isLenient = true; coerceInputValues = true }
-    private val server = credentials.server.trim().trimEnd('/')
+    private val server = ProviderUrl.normalize(credentials.server)
 
     suspend fun authenticate(): ProviderSummary = withContext(Dispatchers.IO) {
         val root = requestJson(null)
@@ -78,12 +79,19 @@ class XtreamClient(
                 val season = seasonKey.toIntOrNull()
                 normalizeCollection(value).mapNotNull { element ->
                     val item = parseItem(element, ContentType.EPISODE) ?: return@mapNotNull null
-                    item.copy(season = item.season ?: season, imageUrl = item.imageUrl ?: series.imageUrl)
+                    item.copy(
+                        season = item.season ?: season,
+                        imageUrl = item.imageUrl ?: series.imageUrl,
+                        parentSeriesId = series.id,
+                        parentSeriesName = series.name,
+                        parentSeriesImageUrl = series.imageUrl,
+                    )
                 }
             }
     }
 
-    fun streamCandidates(item: CatalogItem): List<String> = StreamUrlBuilder.candidates(credentials, item)
+    fun streamCandidates(item: CatalogItem, preferredFormat: StreamFormat = StreamFormat.AUTO): List<String> =
+        StreamUrlBuilder.candidates(credentials, item, preferredFormat)
 
     private fun requestJson(action: String?, extras: Map<String, String> = emptyMap()): JsonObject {
         val base = "$server/player_api.php".toHttpUrlOrNull() ?: error("Provider URL is invalid.")
@@ -130,6 +138,9 @@ class XtreamClient(
             plot = obj.string("plot").ifBlank { obj.string("description") }.nullIfBlank(),
             season = obj.primitive("season")?.intOrNull,
             episode = obj.primitive("episode_num")?.intOrNull,
+            channelNumber = obj.string("num").ifBlank { obj.string("channel_number") }.nullIfBlank(),
+            genre = obj.string("genre").nullIfBlank(),
+            releaseDate = obj.string("releaseDate").ifBlank { obj.string("release_date") }.nullIfBlank(),
         )
     }
 
@@ -157,9 +168,10 @@ class XtreamClient(
 
     companion object {
         private fun defaultHttpClient() = OkHttpClient.Builder()
-            .connectTimeout(20, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(20, TimeUnit.SECONDS)
+            .callTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
             .build()
     }
 }

@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.XtreamlyTV.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#071014</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenIconBackgroundColor">#071014</item>
+        <item name="postSplashScreenTheme">@style/Theme.XtreamlyTV</item>
+    </style>
+</resources>

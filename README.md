@@ -9,10 +9,10 @@ XtreamlyTV is an open-source, remote-first IPTV client for living-room televisio
 | Platform | Status | Package | Playback |
 |---|---|---|---|
 | LG webOS TV | Beta; daily-driver testing | `.ipk` | Native webOS HTML media surface |
-| Android TV / Google TV | Developer preview | `.apk` | AndroidX Media3 ExoPlayer |
+| Android TV / Google TV | 0.5 parity candidate; device validation required | `.apk` | AndroidX Media3 ExoPlayer |
 | Local browser demo | Development only | Static files | Browser media support |
 
-The Android TV target is intended for Google TV and Android TV devices such as supported TCL and Sony televisions, Chromecast with Google TV, NVIDIA Shield, and similar devices. It is an initial native target and does not yet have complete feature parity with webOS.
+The Android TV target is a native Kotlin/Compose implementation of the same XtreamlyTV product experience established on webOS. The 0.5 implementation aligns the information architecture, visual language, local-first data model, and feature expectations while retaining platform-native playback and UI. It remains a parity candidate until the Android build and full TV navigation pass are completed on physical hardware.
 
 ## Features
 
@@ -20,11 +20,12 @@ The Android TV target is intended for Google TV and Android TV devices such as s
 - Category-scoped Live TV, VOD, and Series browsing
 - Virtualized large-catalog navigation
 - Favorite groups, media filter chips, and recently watched favorites
-- Movie and episode resume positions on webOS
-- Live HLS/MPEG-TS fallback on webOS
+- Movie and episode resume positions on webOS and Android TV
+- Live HLS/MPEG-TS fallback on both TV platforms
 - Native Media3 playback on Android TV
 - Remote-first navigation and focus states
-- Multiple color skins on webOS
+- Matching Teal, Graphite, Purple, Pink, and Blue skins on both TV platforms
+- Editable provider settings, catalog cache controls, local history, and privacy controls
 - Optional LAN API bridge for providers that block browser CORS
 - No advertising, analytics, or tracking
 
@@ -75,7 +76,7 @@ npm run build:webos
 Output:
 
 ```text
-dist/webos/com.github.xtreamlytv.webos_0.4.1_all.ipk
+dist/webos/com.github.xtreamlytv.webos_0.5.1_all.ipk
 ```
 
 ### Build Android TV
@@ -108,6 +109,8 @@ apps/android-tv/app/build/outputs/apk/debug/app-debug.apk
 - [Release process](docs/releasing.md)
 - [Roadmap](docs/roadmap.md)
 - [Brand assets](docs/brand.md)
+- [0.5.1 release notes](docs/release-notes/0.5.1.md)
+- [0.5.0 release notes](docs/release-notes/0.5.0.md)
 - [0.4.1 release notes](docs/release-notes/0.4.1.md)
 - [0.4.0 release notes](docs/release-notes/0.4.0.md)
 - [Publish the initial GitHub repository](docs/github-publishing.md)

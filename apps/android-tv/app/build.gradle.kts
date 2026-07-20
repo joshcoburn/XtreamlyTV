@@ -14,8 +14,8 @@ android {
         applicationId = "com.github.xtreamlytv.androidtv"
         minSdk = 23
         targetSdk = 36
-        versionCode = 401
-        versionName = "0.4.1"
+        versionCode = 501
+        versionName = "0.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -56,12 +56,13 @@ kotlin {
 dependencies {
     // Deliberately frozen to the August 2025 stable Compose line. Newer 2026
     // artifacts are built with newer Kotlin metadata and were the source of
-    // the v0.4.1 D8/Kotlin compatibility failures.
+    // the original Android preview D8/Kotlin compatibility failures.
     val composeBom = platform("androidx.compose:compose-bom:2025.08.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
     implementation("androidx.activity:activity-compose:1.11.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")

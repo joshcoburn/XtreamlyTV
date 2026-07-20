@@ -1,6 +1,34 @@
 # Changelog
 
-All notable changes are documented here. XtreamlyTV follows semantic versioning.
+## 0.5.1 - 2026-07-20
+
+### Android TV device polish
+
+- Added an immediate native Android splash and removed the configured-provider login flash during startup.
+- Shortened the path to Home by authenticating before category discovery and loading category lists concurrently in the background.
+- Aligned Android Home, branding, status clock, navigation icons, recent-content rails, and favorites presentation with the webOS baseline.
+- Corrected D-pad focus so details open on Watch/Play and category-to-content navigation skips the search field.
+- Reworked catalog and favorite layouts around fixed visible rows and columns to prevent clipped partial cards and category entries.
+
+## 0.5.0 - 2026-07-20
+
+### Android TV parity baseline
+
+- Rebuilt Android TV against the polished webOS experience as the shared product baseline.
+- Added Android favorites, favorite groups, persistent recents and resume progress, catalog search, provider editing, skins, playback settings, and cache controls.
+- Reworked Android TV sizing for logical TV density so the sidebar, cards, typography, and focus states match the webOS 10-foot layout instead of appearing stretched.
+- Added live, movie, and series detail experiences plus season and episode browsing.
+- Updated the Android player with resume persistence, fallback format preference, channel navigation, and favorite control.
+
+### Android TV onboarding and startup
+
+- Added a branded launch window and an in-app startup screen while encrypted credentials load.
+- Moved credential initialization off the UI thread and parallelized initial category requests.
+- Rebuilt the provider setup screen for common Android TV logical layouts with stable D-pad focus and a permanently visible Connect action.
+- Added Connecting, Try again, timeout, validation, cleartext HTTP warning, and provider-specific error states.
+- Added provider URL normalization, including omitted schemes and pasted `player_api.php` addresses.
+- Added mdpi through xxxhdpi launcher icons and TV banners plus an adaptive launcher icon.
+- Added provider URL and stream-format unit tests and synchronized platform versions to 0.5.0.
 
 ## 0.4.1 - 2026-07-19
 

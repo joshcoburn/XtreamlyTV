@@ -6,7 +6,7 @@ The Android target is a native Kotlin application using Jetpack Compose and Andr
 
 The same debug APK can be installed on compatible Android TV / Google TV devices, including supported TCL and Sony televisions, Chromecast with Google TV, NVIDIA Shield, and similar devices.
 
-The current Android target is a developer preview. Live TV, category browsing, VOD browsing, Series episode discovery, favorites in-session, and Media3 playback are scaffolded. Feature parity with webOS is still in progress.
+The Android target follows the polished webOS application as the shared product baseline. It includes the same sidebar structure, Home experience, category-scoped catalogs, details, persistent favorites and custom groups, recent items, resume positions, skins, editable provider settings, playback preferences, and local privacy controls. Platform-specific behavior remains native: Android uses Media3 and connects directly to providers without the optional webOS CORS bridge.
 
 ## Requirements
 
@@ -34,7 +34,7 @@ cd apps\android-tv
 .\gradlew.bat :app:assembleDebug
 ```
 
-The committed wrapper downloads Gradle 8.14.3 on first use. The v0.4.1 Android toolchain is intentionally frozen to:
+The committed wrapper downloads Gradle 8.14.3 on first use. The Android toolchain is intentionally frozen to:
 
 - Android Gradle Plugin 8.10.1
 - Kotlin and Compose compiler plugin 2.2.21
@@ -149,4 +149,17 @@ Do not publish logs containing provider passwords or authenticated stream URLs.
 
 ## Cleartext HTTP providers
 
-Many Xtream providers use HTTP rather than HTTPS. The debug application currently permits cleartext traffic for compatibility. Public release hardening should move to a scoped network-security configuration and prominently warn users when a provider does not use TLS.
+Many Xtream providers use HTTP rather than HTTPS. The application permits cleartext provider traffic for compatibility and warns during provider setup when credentials will not be protected in transit. Authenticated stream URLs and provider passwords must never be included in logs or bug reports.
+
+## TV launcher artwork and UI resolution
+
+XtreamlyTV does not override the TV's display size or density. Android TV chooses the logical UI surface and the resource system selects the closest matching artwork.
+
+The Android target includes:
+
+- Launcher icons in `mipmap-mdpi` through `mipmap-xxxhdpi` (80–320 px).
+- TV banners in `mipmap-mdpi` through `mipmap-xxxhdpi` (160×90–640×360 px).
+- An adaptive launcher icon for API 26 and newer.
+- A 1024 px `drawable-nodpi` brand mark for Compose onboarding and loading screens.
+
+This keeps artwork sharp on high-density 4K televisions without forcing a nonstandard application resolution.

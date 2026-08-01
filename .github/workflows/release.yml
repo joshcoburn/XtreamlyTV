@@ -59,7 +59,7 @@ jobs:
           name: xtreamlytv-release-build-log
           path: dist/ci/android-release-build.log
           if-no-files-found: ignore
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}

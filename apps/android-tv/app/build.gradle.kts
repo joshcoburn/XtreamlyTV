@@ -57,7 +57,7 @@ dependencies {
     // Deliberately frozen to the August 2025 stable Compose line. Newer 2026
     // artifacts are built with newer Kotlin metadata and were the source of
     // the original Android preview D8/Kotlin compatibility failures.
-    val composeBom = platform("androidx.compose:compose-bom:2025.08.01")
+    val composeBom = platform("androidx.compose:compose-bom:2026.06.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
